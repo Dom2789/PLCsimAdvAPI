@@ -15,7 +15,7 @@
 
     <ItemGroup>
       <Reference Include="Siemens.Simatic.Simulation.Runtime.Api.x64">
-        <HintPath>..\..\..\..\..\media\dom\T7\C#\API-Test\ApiTest\bin\Debug\net9.0\Siemens.Simatic.Simulation.Runtime.Api.x64.dll</HintPath>
+        <HintPath>Siemens.Simatic.Simulation.Runtime.Api.x64.dll</HintPath>
       </Reference>
     </ItemGroup>
 

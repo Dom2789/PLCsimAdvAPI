@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace CoSimulationPlcSimAdv.Models
+namespace PLCsimAdvAPI
 {
     /// <summary>
     /// Class for encapsulate the function of an PLCSIM Adv. virtual Controller and the function to read/write the PAE and PAA
@@ -24,17 +24,28 @@ namespace CoSimulationPlcSimAdv.Models
         /// indicates if Instance is configured --> tag list updatet
         /// </summary>
         private bool IsConfigured { get; set; }
+        public bool newData { get; set; } = false;
+        
+        public bool firstCycle { get; set; } = true;
+        public Byte[] Outputbuffer { get; private set; } = new byte[200];
+        public Byte[] Inputbuffer { private get; set; } = new byte[200];
+        
+        private Address[] Addresses { get; set; } = new Address[49];
+        
 
         #endregion
 
         #region Ctor
 
-        public PLCInstance(string instanceName, string remoteIp = "127.0.0.1", string remotePort = "5000")
+        public PLCInstance(string instanceName, string remoteIp = "127.0.0.1", string remotePort = "50000")
         {
             Instance = SimulationRuntimeManager.RemoteConnect(string.Concat(remoteIp, ":", remotePort)).CreateInterface(instanceName);
             Instance.IsAlwaysSendOnEndOfCycleEnabled = true;
+            // SF1
+            Addresses[18] = new Address(offset:3800, length:200);
 
             Instance.OnEndOfCycle += instance_OnEndOfCycle;
+            
         }
 
         #endregion
@@ -53,27 +64,15 @@ namespace CoSimulationPlcSimAdv.Models
         void instance_OnEndOfCycle(IInstance in_Sender, ERuntimeErrorCode in_ErrorCode, 
             DateTime in_DateTime, long in_CycleTime_ns, uint in_CycleCount)
         {
-
+            // stops the cpu-cycle until method is finished
             try
             {
                 Console.WriteLine("HelloPLC");
-                Byte[] outputBuffer = new byte[2];
-                Byte[] inputBuffer = new byte[2];
-
-                outputBuffer = Instance.OutputArea.ReadBytes(6200, 2);
-              
-                // Swap.ByteArray(ref outputBuffer);
-                //
-                // int life = BitConverter.ToInt16(outputBuffer, 0);
-                // Console.WriteLine(life);
-                // life += 1;
-                // inputBuffer = BitConverter.GetBytes(life);
-                //
-                // Swap.ByteArray(ref inputBuffer);
-
-                inputBuffer = outputBuffer;
-
-                Instance.InputArea.WriteBytes(6200, 2, inputBuffer);
+                if (!firstCycle) Instance.InputArea.WriteBytes(Addresses[18].Offset, Addresses[18].Length, Outputbuffer);
+                
+                Outputbuffer = Instance.OutputArea.ReadBytes(Addresses[18].Offset, Addresses[18].Length );
+                
+                newData = true;
             }
             catch (Exception ex)
             {
