@@ -68,11 +68,17 @@ namespace PLCsimAdvAPI
             try
             {
                 Console.WriteLine("HelloPLC");
+                // how can you use these tags?
+                if(firstCycle) Instance.UpdateTagList(ETagListDetails.IO);
+                // read bool via symbolic address
+                Instance.ReadBool("reserve04");
+                
+                // how to access data dynamically? some kind of dynamic data structure which can be iterated?
+                // collecting the data in a list
                 if (!firstCycle) Instance.InputArea.WriteBytes(Addresses[18].Offset, Addresses[18].Length, Outputbuffer);
-                
                 Outputbuffer = Instance.OutputArea.ReadBytes(Addresses[18].Offset, Addresses[18].Length );
-                
                 newData = true;
+                
             }
             catch (Exception ex)
             {
